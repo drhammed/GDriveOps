@@ -1,4 +1,4 @@
-# my_google_drive_package/google_drive_handler.py
+# gdUpload/gdhandler.py
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -19,17 +19,42 @@ class GoogleDriveHandler:
 
     def create_service(self):
         creds = None
+
+        # Check if credentials.json file exists
+        if not os.path.exists(self.credentials_path):
+            raise FileNotFoundError(f"{self.credentials_path} not found. Please ensure it is in your current working directory.")
+
+        # Attempt to load token.json if it exists
         if os.path.exists(self.token_path):
-            creds = Credentials.from_authorized_user_file(self.token_path, self.SCOPES)
+            try:
+                creds = Credentials.from_authorized_user_file(self.token_path, self.SCOPES)
+            except Exception as e:
+                print(f"Error loading {self.token_path}: {e}")
+                creds = None
+
+        # If there are no (valid) credentials available, let the user log in.
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
-                creds.refresh(Request())
+                try:
+                    creds.refresh(Request())
+                except Exception as e:
+                    raise RuntimeError(f"Failed to refresh token: {e}")
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                creds = flow.run_local_server(port=0)
+                try:
+                    flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
+                    creds = flow.run_local_server(port=0)
+                except Exception as e:
+                    raise RuntimeError(f"Failed to obtain credentials: {e}")
+
+            # Save the credentials for the next run
             with open(self.token_path, 'w') as token:
                 token.write(creds.to_json())
-        service = build('drive', 'v3', credentials=creds)
+
+        try:
+            service = build('drive', 'v3', credentials=creds)
+        except Exception as e:
+            raise RuntimeError(f"Failed to create the Google Drive service: {e}")
+
         return service
 
     def download_all_pdfs(self, folder_id, save_dir='PDF_docs'):
@@ -122,3 +147,30 @@ class GoogleDriveHandler:
                 with open(text_file_path, 'w', encoding='utf-8') as text_file:
                     text_file.write(text_content)
                 print(f"Converted {file_name} to {text_file_name}")
+
+# Entry point for command line usage
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Google Drive Handler')
+    parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx'], help='Action to perform')
+    parser.add_argument('folder_id', help='Google Drive folder ID')
+    parser.add_argument('--token', default='token.json', help='Path to token.json')
+    parser.add_argument('--credentials', default='credentials.json', help='Path to credentials.json')
+    parser.add_argument('--directory', default='.', help='Directory to process files in')
+
+    args = parser.parse_args()
+
+    handler = GoogleDriveHandler(token_path=args.token, credentials_path=args.credentials)
+
+    if args.action == 'download_pdfs':
+        handler.download_all_pdfs(args.folder_id)
+    elif args.action == 'upload_txt':
+        handler.upload_all_txt_files(args.folder_id, directory_path=args.directory)
+    elif args.action == 'convert_pdfs':
+        handler.process_pdfs_in_directory(args.directory)
+    elif args.action == 'convert_docx':
+        handler.convert_all_docx_to_txt(args.directory)
+
+if __name__ == '__main__':
+    main()

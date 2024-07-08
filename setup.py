@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='my_google_drive_package',
+    name='gdUpload',
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
@@ -16,7 +16,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'google_drive_handler=my_google_drive_package.google_drive_handler:main',
+            'gdhandler=gdupload.gdhandler:main',
         ],
     },
 )
