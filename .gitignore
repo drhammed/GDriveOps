@@ -1,10 +1,15 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
+
 
 # C extensions
 *.so
+
 
 # Distribution / packaging
 .Python
@@ -21,6 +26,7 @@ sdist/
 var/
 wheels/
 share/python-wheels/
+pip-wheel-metadata/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -32,7 +38,9 @@ MANIFEST
 *.manifest
 *.spec
 
+
 # Installer logs
+*.log
 pip-log.txt
 pip-delete-this-directory.txt
 
@@ -50,6 +58,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+*.coveragerc
+
 
 # Translations
 *.mo
