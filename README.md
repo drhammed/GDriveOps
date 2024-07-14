@@ -7,7 +7,7 @@ This package provides tools for downloading and uploading PDF and text files fro
 
 ## Installation
 
-$pip install gdUpload$
+`pip install gdUpload`
 
 
 
