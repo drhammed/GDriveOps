@@ -1,13 +1,13 @@
 # gdUpload/gdhandler.py
 
+import os
+import io
+import fitz
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
-import os
-import io
-import fitz
 from docx import Document
 
 class GoogleDriveHandler:
@@ -56,7 +56,7 @@ class GoogleDriveHandler:
             raise RuntimeError(f"Failed to create the Google Drive service: {e}")
 
         return service
-    
+
     def download_all_pdfs(self, folder_id, save_dir='PDF_docs'):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -93,9 +93,11 @@ class GoogleDriveHandler:
                     print(f"{file_name} already exists. Skipping download.")
             page_token = results.get('nextPageToken', None)
             if page_token is None:
-                break 
+                break
 
     def upload_all_txt_files(self, folder_id, directory_path='.'):
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
         files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f)) and f.endswith('.txt')]
         existing_files = self.service.files().list(q=f"'{folder_id}' in parents",
                                                   spaces='drive',
@@ -122,6 +124,8 @@ class GoogleDriveHandler:
         return text
 
     def process_pdfs_in_directory(self, directory_path):
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
         for filename in os.listdir(directory_path):
             if filename.lower().endswith('.pdf'):
                 full_path = os.path.join(directory_path, filename)
@@ -138,6 +142,8 @@ class GoogleDriveHandler:
         return '\n'.join(text)
 
     def convert_all_docx_to_txt(self, folder_path):
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
         for file_name in os.listdir(folder_path):
             if file_name.endswith('.docx'):
                 docx_file_path = os.path.join(folder_path, file_name)
