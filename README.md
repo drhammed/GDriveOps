@@ -13,7 +13,7 @@ pip install my_google_drive_package
 
 #Usage
 
-from my_google_drive_package.google_drive_handler import GoogleDriveHandler
+from gdUpload.gdhandler import GoogleDriveHandler
 
 handler = GoogleDriveHandler()
 handler.download_all_pdfs('your_folder_id')
