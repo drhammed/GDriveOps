@@ -27,7 +27,6 @@ dist/
 .DS_Store
 
 
-
 # C extensions
 *.so
 
