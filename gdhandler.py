@@ -56,7 +56,7 @@ class GoogleDriveHandler:
             raise RuntimeError(f"Failed to create the Google Drive service: {e}")
 
         return service
-
+    
     def download_all_pdfs(self, folder_id, save_dir='PDF_docs'):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
@@ -93,7 +93,7 @@ class GoogleDriveHandler:
                     print(f"{file_name} already exists. Skipping download.")
             page_token = results.get('nextPageToken', None)
             if page_token is None:
-                break
+                break 
 
     def upload_all_txt_files(self, folder_id, directory_path='.'):
         files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f)) and f.endswith('.txt')]
