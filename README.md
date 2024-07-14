@@ -7,7 +7,7 @@ This package provides tools for downloading and uploading PDF and text files fro
 
 ## Installation
 
-pip install my_google_drive_package
+'pip install gdUpload'
 
 
 
