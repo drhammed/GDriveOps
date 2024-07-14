@@ -5,9 +5,9 @@
 
 ## Installation
 
-```python
+
 `pip install gdUpload`
-```
+
 
 
 
