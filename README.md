@@ -13,8 +13,12 @@ This package provides tools for downloading and uploading PDF and text files fro
 
 ## Usage
 
+```python
 from gdUpload.gdhandler import GoogleDriveHandler
 
 handler = GoogleDriveHandler()
+
 handler.download_all_pdfs('your_folder_id')
+
 handler.upload_all_txt_files('your_folder_id')
+```
