@@ -1,12 +1,10 @@
-# setup.py
-
 from setuptools import setup, find_packages
 
 setup(
     name='gdUpload',
     version='0.0.1',
-    package_dir={'': 'gdUpload/src'},
-    packages=find_packages(where='gdUpload/src'),
+    package_dir={'': 'src'},
+    packages=find_packages(where='src'),
     install_requires=[
         'google-auth',
         'google-auth-oauthlib',
@@ -17,7 +15,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'gdUpload=gdUpload.gdhandler:main',
+            'gdUpload=gdhandler:main',
         ],
     },
     author='Hammed A. Akande',
@@ -25,7 +23,7 @@ setup(
     description='A package to handle Google Drive uploads and downloads.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/drhammed/gdUpload', 
+    url='https://github.com/drhammed/gdUpload',
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',

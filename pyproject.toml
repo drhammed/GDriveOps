@@ -1,10 +1,9 @@
 [build-system]
-
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "gdUpload_drhammed"
+name = "gdUpload"
 version = "0.0.1"
 description = "A package for handling Google Drive file operations"
 readme = "README.md"
@@ -31,21 +30,13 @@ dependencies = [
 [project.urls]
 homepage = "https://github.com/drhammed/gdUpload"
 repository = "https://github.com/drhammed/gdUpload"
-Issues = "https://github.com/drhammed/gdUpload/issues"
-
+issues = "https://github.com/drhammed/gdUpload/issues"
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "pytest-cov"
 ]
-
-
-[tool.setuptools]
-package-dir = {"" = "gdUpload/src"}
-
-[tool.setuptools.packages.find]
-where = ["gdUpload/src"]
 
 [project.scripts]
 gdUpload = "gdhandler:main"
