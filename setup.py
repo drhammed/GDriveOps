@@ -2,9 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='gdUpload',
-    version='0.0.2',
-    package_dir={'': 'src'},
-    packages=find_packages(where='src'),
+    version='0.0.5',
+    packages=find_packages(),
     install_requires=[
         'google-auth',
         'google-auth-oauthlib',

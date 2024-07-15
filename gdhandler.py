@@ -10,13 +10,11 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from docx import Document
 
-
-
 class GoogleDriveHandler:
-    def __init__(self, token_path='token.json', credentials_path='credentials.json'):
+    def __init__(self, credentials_path='credentials.json', token_path='token.json'):
         self.SCOPES = ['https://www.googleapis.com/auth/drive']
-        self.token_path = token_path
         self.credentials_path = credentials_path
+        self.token_path = token_path
         self.service = self.create_service()
 
     def create_service(self):
@@ -40,8 +38,10 @@ class GoogleDriveHandler:
                 try:
                     creds.refresh(Request())
                 except Exception as e:
-                    raise RuntimeError(f"Failed to refresh token: {e}")
-            else:
+                    print(f"Failed to refresh token: {e}. Re-authenticating...")
+                    creds = None
+
+            if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
                     creds = flow.run_local_server(port=0)
@@ -163,13 +163,12 @@ def main():
     parser = argparse.ArgumentParser(description='Google Drive Handler')
     parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx'], help='Action to perform')
     parser.add_argument('folder_id', help='Google Drive folder ID')
-    parser.add_argument('--token', default='token.json', help='Path to token.json')
     parser.add_argument('--credentials', default='credentials.json', help='Path to credentials.json')
     parser.add_argument('--directory', default='.', help='Directory to process files in')
 
     args = parser.parse_args()
 
-    handler = GoogleDriveHandler(token_path=args.token, credentials_path=args.credentials)
+    handler = GoogleDriveHandler(credentials_path=args.credentials)
 
     if args.action == 'download_pdfs':
         handler.download_all_pdfs(args.folder_id)
