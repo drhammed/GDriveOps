@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include setup.py
+include requirements.txt
+recursive-include your_package *.py
+recursive-include tests *.py
