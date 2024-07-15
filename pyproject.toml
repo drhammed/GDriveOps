@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gdUpload"
-version = "0.0.1"
+version = "0.0.2"
 description = "A package for handling Google Drive file operations"
 readme = "README.md"
 requires-python = ">=3.6"
@@ -39,4 +39,4 @@ dev = [
 ]
 
 [project.scripts]
-gdUpload = "gdhandler:main"
+gdUpload = "gdUpload.gdhandler:main"

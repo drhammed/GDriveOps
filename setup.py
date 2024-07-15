@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gdUpload',
-    version='0.0.1',
+    version='0.0.2',
     package_dir={'': 'src'},
     packages=find_packages(where='src'),
     install_requires=[
@@ -15,7 +15,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'gdUpload=gdhandler:main',
+            'gdUpload=gdUpload.gdhandler:main',
         ],
     },
     author='Hammed A. Akande',
