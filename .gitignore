@@ -3,6 +3,13 @@
 credentials.json
 token.json
 
+test_credentials.json
+test_token.json
+
+launch.json
+settings.json
+
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -24,7 +31,7 @@ __pycache__/
 node_modules/
 dist/
 .env
-.DS_Store
+
 
 
 # C extensions

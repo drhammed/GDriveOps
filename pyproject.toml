@@ -1,0 +1,42 @@
+[build-system]
+
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdUpload_drhammed"
+version = "0.0.1"
+description = "A package for handling Google Drive file operations"
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+authors = [
+    {name = "Hammed A. Akande", email = "akandehammedadedamola@gmail.com"}
+]
+
+dependencies = [
+    "google-auth",
+    "google-auth-oauthlib",
+    "google-auth-httplib2",
+    "google-api-python-client",
+    "PyMuPDF",
+    "python-docx"
+]
+
+[project.urls]
+homepage = "https://github.com/drhammed/gdUpload"
+repository = "https://github.com/drhammed/gdUpload"
+Issues = "https://github.com/drhammed/gdUpload/issues"
+
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov"
+]
+
