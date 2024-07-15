@@ -1,5 +1,3 @@
-# gdUpload/gdhandler_1.py
-
 import os
 import io
 import fitz
@@ -19,17 +17,17 @@ class GoogleDriveHandler:
 
     def create_service(self):
         creds = None
-        # Check if credentials.json file exists
+
         if not os.path.exists(self.credentials_path):
             raise FileNotFoundError(f"{self.credentials_path} not found. Please ensure it is in your current working directory.")
-         # Attempt to load token.json if it exists
+
         if os.path.exists(self.token_path):
             try:
                 creds = Credentials.from_authorized_user_file(self.token_path, self.SCOPES)
             except Exception as e:
                 print(f"Error loading {self.token_path}: {e}")
                 creds = None
-        # If there are no (valid) credentials available, let the user log in.
+
         if not creds or not creds.valid:
             if creds and creds.expired and creds.refresh_token:
                 try:
@@ -41,10 +39,14 @@ class GoogleDriveHandler:
             if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                    creds = flow.run_local_server(port=0)
+                    # Check if running in Google Colab
+                    if 'COLAB_GPU' in os.environ or 'JPY_PARENT_PID' in os.environ:  
+                        creds = flow.run_console()
+                    else:
+                        creds = flow.run_local_server(port=0)
                 except Exception as e:
                     raise RuntimeError(f"Failed to obtain credentials: {e}")
-            # Save the credentials for the next run
+
             with open(self.token_path, 'w') as token:
                 token.write(creds.to_json())
 
