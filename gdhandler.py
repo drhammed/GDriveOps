@@ -59,7 +59,7 @@ class GoogleDriveHandler:
 
         return service
 
-    def download_all_pdfs(self, folder_id, save_dir='PDF_docs'):
+    def download_pdfs(self, folder_id, save_dir='PDF_docs'):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         page_token = None
@@ -97,7 +97,7 @@ class GoogleDriveHandler:
             if page_token is None:
                 break
 
-    def upload_all_txt_files(self, folder_id, directory_path='.'):
+    def upload_txt(self, folder_id, directory_path='.'):
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
         files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f)) and f.endswith('.txt')]
@@ -125,7 +125,7 @@ class GoogleDriveHandler:
                 text += page.get_text()
         return text
 
-    def process_pdfs_in_directory(self, directory_path):
+    def process_pdfs_in_dir(self, directory_path):
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
         for filename in os.listdir(directory_path):
@@ -143,7 +143,7 @@ class GoogleDriveHandler:
         text = [paragraph.text for paragraph in doc.paragraphs]
         return '\n'.join(text)
 
-    def convert_all_docx_to_txt(self, folder_path):
+    def convert_docx_to_txt(self, folder_path):
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
         for file_name in os.listdir(folder_path):
@@ -156,7 +156,7 @@ class GoogleDriveHandler:
                     text_file.write(text_content)
                 print(f"Converted {file_name} to {text_file_name}")
 
-    def download_all_text_files(self, folder_id, save_dir='Text_docs'):
+    def download_txt(self, folder_id, save_dir='Text_docs'):
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         page_token = None
@@ -194,12 +194,50 @@ class GoogleDriveHandler:
             if page_token is None:
                 break
 
+    def download_docs(self, folder_id, save_dir='Doc_docs'):
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        page_token = None
+        while True:
+            results = self.service.files().list(
+                q=f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')",
+                pageSize=10,
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token
+            ).execute()
+
+            items = results.get('files', [])
+            if not items:
+                print('No files found.')
+                break
+
+            for item in items:
+                file_name = item['name']
+                if not os.path.exists(os.path.join(save_dir, file_name)):
+                    print(f"Downloading {file_name}...")
+                    request = self.service.files().get_media(fileId=item['id'])
+                    fh = io.BytesIO()
+                    downloader = MediaIoBaseDownload(fh, request)
+                    done = False
+                    while not done:
+                        status, done = downloader.next_chunk()
+                        print(f"Download {int(status.progress() * 100)}%.")
+
+                    with open(os.path.join(save_dir, file_name), 'wb') as f:
+                        fh.seek(0)
+                        f.write(fh.read())
+                else:
+                    print(f"{file_name} already exists. Skipping download.")
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
+
 # Entry point for command line usage
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Google Drive Handler')
-    parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx', 'download_txts'], help='Action to perform')
+    parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx', 'download_txts', 'download_docs'], help='Action to perform')
     parser.add_argument('folder_id', help='Google Drive folder ID')
     parser.add_argument('--credentials', default='credentials.json', help='Path to credentials.json')
     parser.add_argument('--directory', default='.', help='Directory to process files in')
@@ -209,15 +247,17 @@ def main():
     handler = GoogleDriveHandler(credentials_path=args.credentials)
 
     if args.action == 'download_pdfs':
-        handler.download_all_pdfs(args.folder_id)
+        handler.download_pdfs(args.folder_id)
     elif args.action == 'upload_txt':
-        handler.upload_all_txt_files(args.folder_id, directory_path=args.directory)
+        handler.upload_txt(args.folder_id, directory_path=args.directory)
     elif args.action == 'convert_pdfs':
-        handler.process_pdfs_in_directory(args.directory)
+        handler.process_pdfs_in_dir(args.directory)
     elif args.action == 'convert_docx':
-        handler.convert_all_docx_to_txt(args.directory)
+        handler.convert_docx_to_txt(args.directory)
     elif args.action == 'download_txts':
-        handler.download_all_text_files(args.folder_id, save_dir=args.directory)
+        handler.download_txt(args.folder_id, save_dir=args.directory)
+    elif args.action == 'download_docs':
+        handler.download_docs(args.folder_id, save_dir=args.directory)
 
 if __name__ == '__main__':
     main()
