@@ -5,8 +5,10 @@ from unittest.mock import patch, MagicMock, mock_open
 from gdUpload.gdhandler import GoogleDriveHandler
 import os
 import io
-#import sys
+import sys
 #sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+#sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'gdUpload', 'src')))
 
 
 print(f"Current working directory: {os.getcwd()}") 

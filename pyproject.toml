@@ -40,3 +40,12 @@ dev = [
     "pytest-cov"
 ]
 
+
+[tool.setuptools]
+package-dir = {"" = "gdUpload/src"}
+
+[tool.setuptools.packages.find]
+where = ["gdUpload/src"]
+
+[project.scripts]
+gdUpload = "gdhandler:main"
