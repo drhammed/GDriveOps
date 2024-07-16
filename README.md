@@ -136,10 +136,13 @@ Ensure Python is installed on your system and obtain credentials.json from the G
    ```
 
 3. Running the Script:
-- In a Terminal
-Open a terminal and navigate to the directory containing your credentials.json.
-Use one of the provided commands to perform the desired action, replacing <folder_id> and <local_directory> with appropriate values.
-- In a Jupyter Notebook or Python Script
+   
+**In a Terminal**:
+
+Open a terminal and navigate to the directory containing your credentials.json. Use one of the provided commands to perform the desired action, replacing <folder_id> and <local_directory> with appropriate values.
+
+**In a Jupyter Notebook or Python Script**:
+
 You can run the package in a Jupyter notebook or any Python script as follows:
 
 - Install the package via pip.
