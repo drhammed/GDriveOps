@@ -127,10 +127,11 @@ class GoogleDriveHandler:
             os.makedirs(path)
 
     def get_files_in_folder(self, folder_id, mimeType):
+        query = f"'{folder_id}' in parents and mimeType='{mimeType}'"
         results = self.service.files().list(
-            q=f"'{folder_id}' in parents and mimeType={mimeType}",
-            pageSize=10,
-            fields="nextPageToken, files(id, name)"
+        q=query,
+        pageSize=10,
+        fields="nextPageToken, files(id, name)"
         ).execute()
         return results.get('files', [])
 
