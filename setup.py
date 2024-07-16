@@ -5,10 +5,10 @@ setup(
     version='0.1.2',
     packages=find_packages(),
     install_requires=[
-        "google-api-python-client==1.7.2",
-        "google-auth==2.14.1",
-        "google-auth-httplib2==0.0.3",
-        "google-auth-oauthlib==0.4.1",
+        "google-api-python-client",
+        "google-auth",
+        "google-auth-httplib2",
+        "google-auth-oauthlib",
         'PyMuPDF',
         'python-docx'
     ],
