@@ -36,7 +36,8 @@ node_modules/
 dist/
 .env
 
-
+# Ignore cached files
+.__cached__
 
 # C extensions
 *.so
