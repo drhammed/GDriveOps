@@ -128,7 +128,7 @@ Ensure Python is installed on your system and obtain credentials.json from the G
 - Download the credentials.json file and place it in your working directory.
 
 
-2. Install Dependencies
+2. Install Dependencies:
    
    By default, gdUpload should install the dependencies. You can also install them using the `pip` command
    ```python
