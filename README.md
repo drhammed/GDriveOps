@@ -130,9 +130,9 @@ Ensure Python is installed on your system and obtain credentials.json from the G
 
 2. Install Dependencies:
    
-   By default, GDriveOps should install the dependencies. You can also install them using the `pip` command
+   By default, GDriveOps should install the dependencies. You can also install them using the `pip` command (especially when using colab).
    ```python
-   pip install google-api-python-client==1.7.2 google-auth==2.14.1 google-auth-httplib2==0.0.3 google-auth-oauthlib==0.4.1 PyMuPDF python-docx
+   !pip install google-api-python-client==1.7.2 google-auth==2.14.1 google-auth-httplib2==0.0.3 google-auth-oauthlib==0.4.1 PyMuPDF python-docx
    ```
 
 3. Running the Script:
