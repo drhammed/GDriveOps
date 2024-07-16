@@ -1,17 +1,17 @@
-# gdUpload
+# GDriveOps
 
-`gdUpload` is a Python package for handling Google Drive file uploads and downloads, with additional functionality for converting files to text.  This package provides tools for downloading and uploading PDF and text files from/to Google Drive.
+`GDriveOps` is a Python package for handling Google Drive file uploads and downloads, with additional functionality for converting files to text.  This package provides tools for downloading and uploading PDF and text files from/to Google Drive.
 
 
 ## Installation
 
-`pip install gdUpload`
+`pip install GDriveOps`
 
 
 ## Usage
 
 ```python
-from gdUpload.gdhandler import GoogleDriveHandler
+from GDriveOps.GDhandler import GoogleDriveHandler
 
 # Initialize the Handler
 
@@ -51,10 +51,10 @@ handler.download_txt(folder_id, save_dir='dir')
 First, ensure you have the package installed. You can install it directly from PyPI using pip (see the `Installation` above).
 
 
-Once installed, you can use the following commands with `gdUpload` to perform different actions:
+Once installed, you can use the following commands with `GDriveOps` to perform different actions:
 
 ```python
-python -m gdUpload <action> <folder_id> [--credentials <credentials_path>] [--directory <directory_path>]
+python -m GDriveOps <action> <folder_id> [--credentials <credentials_path>] [--directory <directory_path>]
 ```
 
 ## Actions
@@ -78,7 +78,7 @@ Before using the command line tools, ensure you have authenticated with Google D
 - First-time setup: Run the following code to authenticate and generate a token:
 
 ```python
-from gdUpload.gdhandler import GoogleDriveHandler
+from GDriveOps.GDhandler import GoogleDriveHandler
 handler = GoogleDriveHandler(credentials_path='path/to/credentials.json')
 ```
 
@@ -92,25 +92,25 @@ This will open a browser window for authentication. Once completed, a token.json
 ```python
 
 ## Download all PDFs from a Google Drive folder:
-python -m gdUpload download_pdfs <folder_id> 
+python -m GDriveOps download_pdfs <folder_id> 
 
 ## Upload all .txt files from a local directory to a Google Drive folder:
-python -m gdUpload upload_txt <folder_id> --directory /path/to/local/directory
+python -m GDriveOps upload_txt <folder_id> --directory /path/to/local/directory
 
 
 ## Convert all PDFs in a local directory to text files:
-python -m gdUpload convert_pdfs --directory /path/to/local/directory
+python -m GDriveOps convert_pdfs --directory /path/to/local/directory
 
 
 ## Convert all DOCX files in a local directory to text files:
-python -m gdUpload convert_docx --directory /path/to/local/directory
+python -m GDriveOps convert_docx --directory /path/to/local/directory
 
 ## Download all text files from a Google Drive folder:
-python -m gdUpload download_txts <folder_id>
+python -m GDriveOps download_txts <folder_id>
 
 
 ## Download all DOC and DOCX files from a Google Drive folder:
-python -m gdUpload download_docs <folder_id> 
+python -m GDriveOps download_docs <folder_id> 
 
 ```
 
@@ -130,7 +130,7 @@ Ensure Python is installed on your system and obtain credentials.json from the G
 
 2. Install Dependencies:
    
-   By default, gdUpload should install the dependencies. You can also install them using the `pip` command
+   By default, GDriveOps should install the dependencies. You can also install them using the `pip` command
    ```python
    pip install google-api-python-client==1.7.2 google-auth==2.14.1 google-auth-httplib2==0.0.3 google-auth-oauthlib==0.4.1 PyMuPDF python-docx
    ```
