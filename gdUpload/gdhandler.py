@@ -39,17 +39,9 @@ class GoogleDriveHandler:
             if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                    if 'COLAB_GPU' in os.environ:
-                        port = 8080
-                        while True:
-                            try:
-                                creds = flow.run_local_server(port=port)
-                                break
-                            except OSError as e:
-                                if e.errno == 98:  # Address already in use
-                                    port += 1
-                                else:
-                                    raise
+                    #if 'COLAB_GPU' in os.environ:
+                    if 'COLAB_GPU' in os.environ or 'JPY_PARENT_PID' in os.environ:
+                        creds = flow.run_console()
                     else:
                         creds = flow.run_local_server(port=0)
                 except Exception as e:
@@ -125,7 +117,7 @@ class GoogleDriveHandler:
     def download_docs(self, folder_id, save_dir='Doc_docs'):
         self.ensure_directory(save_dir)
         items = self.get_files_in_folder(folder_id, "(mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')")
-        for item in items:
+        for item in items, "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             self.download_file(item, save_dir)
 
     def ensure_directory(self, path):
