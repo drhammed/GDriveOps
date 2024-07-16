@@ -1,7 +1,7 @@
 import pytest
 import os
 from unittest.mock import MagicMock, patch, mock_open
-from gdUpload.gdhandler import GoogleDriveHandler
+from GDriveOps.GDhandler import GoogleDriveHandler
 
 @pytest.fixture
 def handler():
@@ -14,8 +14,8 @@ def find_file_with_extension(directory, extension):
     return None
 
 def test_ensure_directory(mocker, handler):
-    mock_makedirs = mocker.patch('gdUpload.gdhandler.os.makedirs')
-    mocker.patch('gdUpload.gdhandler.os.path.exists', return_value=False)
+    mock_makedirs = mocker.patch('GDriveOps.GDhandler.os.makedirs')
+    mocker.patch('GDriveOps.GDhandler.os.path.exists', return_value=False)
     handler.ensure_directory('new_dir')
     mock_makedirs.assert_called_with('new_dir')
 
@@ -30,7 +30,7 @@ def test_process_pdfs_in_dir(mocker, handler):
     pdf_name = os.path.basename(pdf_file)
     txt_file = os.path.splitext(pdf_name)[0] + '.txt'
 
-    mocker.patch('gdUpload.gdhandler.os.listdir', return_value=[pdf_name])
+    mocker.patch('GDriveOps.GDhandler.os.listdir', return_value=[pdf_name])
     mocker.patch.object(handler, 'convert_pdf_to_text', return_value='Sample text from PDF')
 
     with patch('builtins.open', mock_open()) as mock_file:
@@ -49,7 +49,7 @@ def test_convert_docx_to_txt(mocker, handler):
     docx_name = os.path.basename(docx_file)
     txt_file = os.path.splitext(docx_name)[0] + '.txt'
 
-    mocker.patch('gdUpload.gdhandler.os.listdir', return_value=[docx_name])
+    mocker.patch('GDriveOps.GDhandler.os.listdir', return_value=[docx_name])
     mocker.patch.object(handler, 'docx_to_text', return_value='Sample text from DOCX')
 
     with patch('builtins.open', mock_open()) as mock_file:

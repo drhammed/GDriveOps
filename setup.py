@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='gdUpload',
+    name='GDriveOps',
     version='0.1.0',
     packages=find_packages(),
     install_requires=[
@@ -17,7 +17,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'gdUpload=gdUpload.gdhandler:main',
+            'GDriveOps=GDriveOps.GDhandler:main',
         ],
     },
     author='Hammed A. Akande',
@@ -25,7 +25,7 @@ setup(
     description='A package to handle Google Drive uploads and downloads.',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url='https://github.com/drhammed/gdUpload',
+    url='https://github.com/drhammed/GDriveOps',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
