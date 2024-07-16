@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GDriveOps',
-    version='0.1.1',
+    version='0.1.2',
     packages=find_packages(),
     install_requires=[
         "google-api-python-client==1.7.2",
