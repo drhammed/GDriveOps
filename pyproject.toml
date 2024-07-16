@@ -9,8 +9,8 @@ description = "A package for handling Google Drive file operations"
 readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
-    'Development Status :: 3 - Alpha',
-    'Intended Audience :: Developers',
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -25,8 +25,8 @@ dependencies = [
     "google-auth==2.14.1",
     "google-auth-httplib2==0.0.3",
     "google-auth-oauthlib==0.4.1",
-    'PyMuPDF',
-    'python-docx'
+    "PyMuPDF",
+    "python-docx"
 ]
 
 [project.urls]
@@ -42,3 +42,6 @@ dev = [
 
 [project.scripts]
 gdUpload = "gdUpload.gdhandler:main"
+
+[tool.setuptools]
+entry-points = { console_scripts = ["gdUpload=gdUpload.gdhandler:main"] }
