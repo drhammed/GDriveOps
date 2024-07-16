@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='gdUpload',
-    version='0.1.8',
+    version='0.1.0',
     packages=find_packages(),
     install_requires=[
         "google-api-python-client==1.7.2",
@@ -10,7 +10,7 @@ setup(
         "google-auth-httplib2==0.0.3",
         "google-auth-oauthlib==0.4.1",
         'PyMuPDF',
-        'python-docx',
+        'python-docx'
     ],
     dependency_links=[
         'https://pypi.org/simple/'
@@ -27,6 +27,8 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/drhammed/gdUpload',
     classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',

@@ -4,11 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gdUpload"
-version = "0.1.8"
+version = "0.1.0"
 description = "A package for handling Google Drive file operations"
 readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
+    'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -19,12 +21,12 @@ authors = [
 ]
 
 dependencies = [
-    "google-auth",
-    "google-auth-oauthlib",
-    "google-auth-httplib2",
-    "google-api-python-client",
-    "PyMuPDF",
-    "python-docx"
+    "google-api-python-client==1.7.2",
+    "google-auth==2.14.1",
+    "google-auth-httplib2==0.0.3",
+    "google-auth-oauthlib==0.4.1",
+    'PyMuPDF',
+    'python-docx'
 ]
 
 [project.urls]
