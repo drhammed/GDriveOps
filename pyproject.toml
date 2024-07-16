@@ -42,6 +42,3 @@ dev = [
 
 [project.scripts]
 gdUpload = "gdUpload.gdhandler:main"
-
-[tool.setuptools]
-entry-points = { console_scripts = ["gdUpload=gdUpload.gdhandler:main"] }
