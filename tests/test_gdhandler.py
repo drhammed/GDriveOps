@@ -1,7 +1,7 @@
 import pytest
 import os
 from unittest.mock import MagicMock, patch, mock_open
-from gdUpload.gdhandler_1 import GoogleDriveHandler
+from gdUpload.gdhandler import GoogleDriveHandler
 
 @pytest.fixture
 def handler():
