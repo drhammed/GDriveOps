@@ -1,8 +1,8 @@
-#credentials
-
+#protect credentials
 credentials.json
 token.json
 
+#test credentials
 test_credentials.json
 test_token.json
 
