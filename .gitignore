@@ -25,7 +25,6 @@ __pycache__/
 *.pyd
 *$py.class
 
-
 # Ignore pytest cache
 .pytest_cache/
 
