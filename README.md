@@ -124,11 +124,12 @@ Ensure Python is installed on your system and obtain credentials.json from the G
 1. Obtain Google API Credentials:
 - Go to the [Google Cloud Console](https://console.cloud.google.com/).
 - Create a new project (or select an existing one).
-- Navigate to the "Credentials" page and create OAuth 2.0 Client IDs.
+- Navigate to the "Credentials" page (APIs & Services > Credentials) and create OAuth 2.0 Client IDs.
 - Download the credentials.json file and place it in your working directory.
 
 
 2. Install Dependencies
+   
    By default, gdUpload should install the dependencies. You can also install them using the `pip` command
    ```python
    pip install google-api-python-client==1.7.2 google-auth==2.14.1 google-auth-httplib2==0.0.3 google-auth-oauthlib==0.4.1 PyMuPDF python-docx
