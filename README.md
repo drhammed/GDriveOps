@@ -47,7 +47,7 @@ handler.download_txt(folder_id, save_dir='dir')
 ```
 
 
-## Command Line Usage
+# Command Line Usage
 First, ensure you have the package installed. You can install it directly from PyPI using pip (see the `Installation` above).
 
 
@@ -58,21 +58,31 @@ python -m GDriveOps <action> <folder_id> [--credentials <credentials_path>] [--d
 ```
 
 ## Actions
+
 `download_pdfs`: Download all PDFs from a specified Google Drive folder.
+
 `upload_txt`: Upload all .txt files from a specified directory to a Google Drive folder.
+
 `convert_pdfs`: Convert all PDFs in a specified directory to text files.
+
 `convert_docx`: Convert all DOCX files in a specified directory to text files.
+
 `download_txts`: Download all text files from a specified Google Drive folder.
+
 `download_docs`: Download all DOC and DOCX files from a specified Google Drive folder.
 
 ## Options
-- `<action>`: The action to perform (e.g., download_pdfs, upload_txt, etc.).
-- `<folder_id>`: The Google Drive folder ID where files will be uploaded or downloaded.
-- `--credentials <credentials_path>`: Optional. Path to the credentials.json file. Default is credentials.json in your current working directory.
-- `--directory <directory_path>`: Optional. Directory to process files in. Default is the current directory.
+
+- `action`: The action to perform (e.g., download_pdfs, upload_txt, etc.).
+
+- `folder_id`: The Google Drive folder ID where files will be uploaded or downloaded.
+
+- `--credentials (credentials_path)`: Optional. Path to the credentials.json file. Default is credentials.json in your current working directory.
+
+- `--directory (directory_path)`: Optional. Directory to process files in. Default is the current directory.
 
 
-## Authentication
+# Authentication
 Before using the command line tools, ensure you have authenticated with Google Drive:
 
 - First-time setup: Run the following code to authenticate and generate a token:
@@ -91,35 +101,35 @@ This will open a browser window for authentication. Once completed, a token.json
 
 ```python
 
-## Download all PDFs from a Google Drive folder:
+# Download all PDFs from a Google Drive folder:
 python -m GDriveOps download_pdfs <folder_id> 
 
-## Upload all .txt files from a local directory to a Google Drive folder:
+# Upload all .txt files from a local directory to a Google Drive folder:
 python -m GDriveOps upload_txt <folder_id> --directory /path/to/local/directory
 
 
-## Convert all PDFs in a local directory to text files:
+# Convert all PDFs in a local directory to text files:
 python -m GDriveOps convert_pdfs --directory /path/to/local/directory
 
 
-## Convert all DOCX files in a local directory to text files:
+# Convert all DOCX files in a local directory to text files:
 python -m GDriveOps convert_docx --directory /path/to/local/directory
 
-## Download all text files from a Google Drive folder:
+# Download all text files from a Google Drive folder:
 python -m GDriveOps download_txts <folder_id>
 
 
-## Download all DOC and DOCX files from a Google Drive folder:
+# Download all DOC and DOCX files from a Google Drive folder:
 python -m GDriveOps download_docs <folder_id> 
 
 ```
 
 
 
-## Setup Requirements
+# Setup Requirements
 Ensure Python is installed on your system and obtain credentials.json from the Google API credentials. Also, you need to install the required Python packages.
 
-# Detailed Setup Instructions
+## Detailed Setup Instructions
 
 1. Obtain Google API Credentials:
 - Go to the [Google Cloud Console](https://console.cloud.google.com/).
