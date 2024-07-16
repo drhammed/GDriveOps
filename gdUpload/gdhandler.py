@@ -40,9 +40,8 @@ class GoogleDriveHandler:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
                     # Check if running in Google Colab
-                    #if 'COLAB_GPU' in os.environ or 'JPY_PARENT_PID' in os.environ:
-                    if 'COLAB_GPU' in os.environ:   
-                        creds = flow.run_console()
+                    if 'COLAB_GPU' in os.environ:
+                        creds = flow.run_local_server(port=8080)
                     else:
                         creds = flow.run_local_server(port=0)
                 except Exception as e:
