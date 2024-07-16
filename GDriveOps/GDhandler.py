@@ -41,7 +41,6 @@ class GoogleDriveHandler:
             if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                    #if 'COLAB_GPU' in os.environ or 'JPY_PARENT_PID' in os.environ:
                     if 'COLAB_GPU' in os.environ:
                         creds = flow.run_console()
                     else:
@@ -118,8 +117,9 @@ class GoogleDriveHandler:
 
     def download_docs(self, folder_id, save_dir='Doc_docs'):
         self.ensure_directory(save_dir)
-        items = self.get_files_in_folder(folder_id, "(mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')")
-        for item in items, "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
+        query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')"
+        items = self.get_files_in_folder_with_query(query)
+        for item in items:
             self.download_file(item, save_dir)
 
     def ensure_directory(self, path):
@@ -129,9 +129,17 @@ class GoogleDriveHandler:
     def get_files_in_folder(self, folder_id, mimeType):
         query = f"'{folder_id}' in parents and mimeType='{mimeType}'"
         results = self.service.files().list(
-        q=query,
-        pageSize=10,
-        fields="nextPageToken, files(id, name)"
+            q=query,
+            pageSize=10,
+            fields="nextPageToken, files(id, name)"
+        ).execute()
+        return results.get('files', [])
+
+    def get_files_in_folder_with_query(self, query):
+        results = self.service.files().list(
+            q=query,
+            pageSize=10,
+            fields="nextPageToken, files(id, name)"
         ).execute()
         return results.get('files', [])
 
@@ -166,6 +174,7 @@ class GoogleDriveHandler:
                                            media_body=media,
                                            fields='id').execute()
         print(f"{file_name} uploaded successfully with File ID: {file.get('id')}")
+
 
 # Entry point for command line usage
 def main():
