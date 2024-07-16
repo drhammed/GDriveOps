@@ -39,9 +39,17 @@ class GoogleDriveHandler:
             if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                    # Check if running in Google Colab
                     if 'COLAB_GPU' in os.environ:
-                        creds = flow.run_local_server(port=8080)
+                        port = 8080
+                        while True:
+                            try:
+                                creds = flow.run_local_server(port=port)
+                                break
+                            except OSError as e:
+                                if e.errno == 98:  # Address already in use
+                                    port += 1
+                                else:
+                                    raise
                     else:
                         creds = flow.run_local_server(port=0)
                 except Exception as e:
