@@ -135,7 +135,7 @@ Ensure Python is installed on your system and obtain credentials.json from the G
    pip install google-api-python-client==1.7.2 google-auth==2.14.1 google-auth-httplib2==0.0.3 google-auth-oauthlib==0.4.1 PyMuPDF python-docx
    ```
 
-3. Running the Script
+3. Running the Script:
 - In a Terminal
 Open a terminal and navigate to the directory containing your credentials.json.
 Use one of the provided commands to perform the desired action, replacing <folder_id> and <local_directory> with appropriate values.
