@@ -58,6 +58,60 @@ class GoogleDriveHandler:
 
         return service
 
+    def ensure_directory(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+    def get_files_in_folder(self, folder_id, mimeType):
+        query = f"'{folder_id}' in parents and mimeType='{mimeType}' and trashed=false"
+        results = self.service.files().list(
+            q=query,
+            pageSize=10,
+            fields="nextPageToken, files(id, name)"
+        ).execute()
+        return results.get('files', [])
+
+    def get_files_in_folder_with_query(self, query):
+        query += " and trashed=false"
+        results = self.service.files().list(
+            q=query,
+            pageSize=10,
+            fields="nextPageToken, files(id, name)"
+        ).execute()
+        return results.get('files', [])
+
+    def download_file(self, item, save_dir):
+        file_name = item['name']
+        if not os.path.exists(os.path.join(save_dir, file_name)):
+            print(f"Downloading {file_name}...")
+            request = self.service.files().get_media(fileId=item['id'])
+            fh = io.BytesIO()
+            downloader = MediaIoBaseDownload(fh, request)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+                print(f"Download {int(status.progress() * 100)}%.")
+            with open(os.path.join(save_dir, file_name), 'wb') as f:
+                fh.seek(0)
+                f.write(fh.read())
+        else:
+            print(f"{file_name} already exists. Skipping download.")
+
+    def get_existing_files(self, folder_id):
+        existing_files = self.service.files().list(q=f"'{folder_id}' in parents and trashed=false",
+                                                  spaces='drive',
+                                                  fields='nextPageToken, files(id, name)').execute()
+        return [file['name'] for file in existing_files.get('files', [])]
+
+    def upload_file(self, file_name, folder_id, directory_path):
+        file_path = os.path.join(directory_path, file_name)
+        file_metadata = {'name': file_name, 'parents': [folder_id]}
+        media = MediaFileUpload(file_path, mimetype='text/plain')
+        file = self.service.files().create(body=file_metadata,
+                                           media_body=media,
+                                           fields='id').execute()
+        print(f"{file_name} uploaded successfully with File ID: {file.get('id')}")
+
     def download_pdfs(self, folder_id, save_dir='PDF_docs'):
         self.ensure_directory(save_dir)
         items = self.get_files_in_folder(folder_id, "application/pdf")
@@ -121,60 +175,6 @@ class GoogleDriveHandler:
         items = self.get_files_in_folder_with_query(query)
         for item in items:
             self.download_file(item, save_dir)
-
-    def ensure_directory(self, path):
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-    def get_files_in_folder(self, folder_id, mimeType):
-        query = f"'{folder_id}' in parents and mimeType='{mimeType}'"
-        results = self.service.files().list(
-            q=query,
-            pageSize=10,
-            fields="nextPageToken, files(id, name)"
-        ).execute()
-        return results.get('files', [])
-
-    def get_files_in_folder_with_query(self, query):
-        results = self.service.files().list(
-            q=query,
-            pageSize=10,
-            fields="nextPageToken, files(id, name)"
-        ).execute()
-        return results.get('files', [])
-
-    def download_file(self, item, save_dir):
-        file_name = item['name']
-        if not os.path.exists(os.path.join(save_dir, file_name)):
-            print(f"Downloading {file_name}...")
-            request = self.service.files().get_media(fileId=item['id'])
-            fh = io.BytesIO()
-            downloader = MediaIoBaseDownload(fh, request)
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
-                print(f"Download {int(status.progress() * 100)}%.")
-            with open(os.path.join(save_dir, file_name), 'wb') as f:
-                fh.seek(0)
-                f.write(fh.read())
-        else:
-            print(f"{file_name} already exists. Skipping download.")
-
-    def get_existing_files(self, folder_id):
-        existing_files = self.service.files().list(q=f"'{folder_id}' in parents",
-                                                  spaces='drive',
-                                                  fields='nextPageToken, files(id, name)').execute()
-        return [file['name'] for file in existing_files.get('files', [])]
-
-    def upload_file(self, file_name, folder_id, directory_path):
-        file_path = os.path.join(directory_path, file_name)
-        file_metadata = {'name': file_name, 'parents': [folder_id]}
-        media = MediaFileUpload(file_path, mimetype='text/plain')
-        file = self.service.files().create(body=file_metadata,
-                                           media_body=media,
-                                           fields='id').execute()
-        print(f"{file_name} uploaded successfully with File ID: {file.get('id')}")
-
 
 # Entry point for command line usage
 def main():
