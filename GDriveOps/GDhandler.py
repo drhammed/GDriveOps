@@ -1,5 +1,4 @@
 #import libs
-
 import os
 import io
 import fitz
