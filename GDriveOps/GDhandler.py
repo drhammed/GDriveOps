@@ -171,7 +171,7 @@ class GoogleDriveHandler:
 
     def download_docs(self, folder_id, save_dir='Doc_docs'):
         self.ensure_directory(save_dir)
-        query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document')"
+        query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document') and trashed=false"
         items = self.get_files_in_folder_with_query(query)
         for item in items:
             self.download_file(item, save_dir)
