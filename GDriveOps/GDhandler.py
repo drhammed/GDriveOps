@@ -40,10 +40,7 @@ class GoogleDriveHandler:
             if not creds:
                 try:
                     flow = InstalledAppFlow.from_client_secrets_file(self.credentials_path, self.SCOPES)
-                    if 'COLAB_GPU' in os.environ:
-                        creds = flow.run_console()
-                    else:
-                        creds = flow.run_local_server(port=0)
+                    creds = flow.run_local_server(port=0)
                 except Exception as e:
                     raise RuntimeError(f"Failed to obtain credentials: {e}")
 
@@ -115,25 +112,36 @@ class GoogleDriveHandler:
             print(f"{file_name} already exists. Skipping download.")
 
     def get_existing_files(self, folder_id):
-        existing_files = self.service.files().list(q=f"'{folder_id}' in parents and trashed=false",
-                                                  spaces='drive',
-                                                  fields='nextPageToken, files(id, name)').execute()
+        existing_files = self.service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            spaces='drive',
+            fields='nextPageToken, files(id, name)'
+        ).execute()
         return [file['name'] for file in existing_files.get('files', [])]
 
     def upload_file(self, file_name, folder_id, directory_path):
         file_path = os.path.join(directory_path, file_name)
         file_metadata = {'name': file_name, 'parents': [folder_id]}
         media = MediaFileUpload(file_path, mimetype='text/plain')
-        file = self.service.files().create(body=file_metadata,
-                                           media_body=media,
-                                           fields='id').execute()
+        file = self.service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id'
+        ).execute()
         print(f"{file_name} uploaded successfully with File ID: {file.get('id')}")
 
     def download_pdfs(self, folder_id, save_dir='PDF_docs'):
         self.ensure_directory(save_dir)
         page_token = None
         while True:
-            items = self.get_files_in_folder(folder_id, "application/pdf", page_size=10)
+            results = self.service.files().list(
+                q=f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false",
+                spaces='drive',
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token,
+                pageSize=10
+            ).execute()
+            items = results.get('files', [])
             if not items:
                 print('No more files found.')
                 break
@@ -192,7 +200,14 @@ class GoogleDriveHandler:
         self.ensure_directory(save_dir)
         page_token = None
         while True:
-            items = self.get_files_in_folder(folder_id, "text/plain", page_size=10)
+            results = self.service.files().list(
+                q=f"'{folder_id}' in parents and mimeType='text/plain' and trashed=false",
+                spaces='drive',
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token,
+                pageSize=10
+            ).execute()
+            items = results.get('files', [])
             if not items:
                 print('No more files found.')
                 break
@@ -207,7 +222,14 @@ class GoogleDriveHandler:
         query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document') and trashed=false"
         page_token = None
         while True:
-            items = self.get_files_in_folder_with_query(query, page_size=10)
+            results = self.service.files().list(
+                q=query,
+                spaces='drive',
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token,
+                pageSize=10
+            ).execute()
+            items = results.get('files', [])
             if not items:
                 print('No more files found.')
                 break
