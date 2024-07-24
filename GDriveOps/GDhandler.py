@@ -59,6 +59,8 @@ import voyageai
 from langchain_voyageai import VoyageAIEmbeddings
 from sklearn.metrics.pairwise import cosine_similarity
 from rouge_score import rouge_scorer
+from ipywidgets import widgets
+from IPython.display import display
 
 
 nltk.download('punkt')
@@ -449,18 +451,33 @@ class GoogleDriveHandler:
         doc.add_paragraph(summary)
         doc.save(output_path)
 
-    def process_pdfs(self, pdf_directory, output_directory, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
-        for pdf_filename in os.listdir(pdf_directory):
-            if pdf_filename.endswith('.pdf'):
-                pdf_path = os.path.join(pdf_directory, pdf_filename)
-                text = self.extract_text_from_pdf(pdf_path)
-                combined_text, _ = self.extract_sections(text)
-                preprocessed_text = self.preprocess_text(combined_text)
+    
+    def summarize_pdfs(self, pdf_directory, output_directory, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
+        model_options = ["llama3-8b-8192", "llama3-70b-8192", "gpt-4o-mini", "gpt-4o", "gpt-4"]
 
-                summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+        model_dropdown = widgets.Dropdown(
+            options=model_options,
+            value=model_options[0],
+            description='Select Model:',
+        )
+        display(model_dropdown)
 
-                output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
-                self.save_summary_as_docx(summary, output_path)
+        def on_model_change(change):
+            selected_model = change['new']
+            for pdf_filename in os.listdir(pdf_directory):
+                if pdf_filename.endswith('.pdf'):
+                    pdf_path = os.path.join(pdf_directory, pdf_filename)
+                    text = self.extract_text_from_pdf(pdf_path)
+                    combined_text, _ = self.extract_sections(text)
+                    preprocessed_text = self.preprocess_text(combined_text)
+
+                    model = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
+                    summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+
+                    output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
+                    self.save_summary_as_docx(summary, output_path)
+
+        model_dropdown.observe(on_model_change, names='value')
 
     def run_streamlit_app(self):
         st.title("PDF Research Paper Summarizer")
@@ -504,19 +521,22 @@ def main():
     args = parser.parse_args()
 
     handler = GoogleDriveHandler(credentials_path=args.credentials)
-
+    
+    
     if args.action == 'download_pdfs':
         handler.download_pdfs(args.folder_id)
     elif args.action == 'upload_txt':
         handler.upload_txt(args.folder_id, directory_path=args.directory)
     elif args.action == 'convert_pdfs':
-        handler.process_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
+        handler.process_pdfs_in_dir(args.directory)
     elif args.action == 'convert_docx':
         handler.convert_docx_to_txt(args.directory)
     elif args.action == 'download_txts':
         handler.download_txt(args.folder_id, save_dir=args.directory)
     elif args.action == 'download_docs':
         handler.download_docs(args.folder_id, save_dir=args.directory)
+    elif args.action == 'summaerize_pdfs':
+        handler.summarize_pdfs_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
     elif args.action == 'run_app':
         handler.run_streamlit_app()
 
