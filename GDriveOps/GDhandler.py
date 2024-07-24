@@ -14,7 +14,6 @@ from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload
 from docx import Document
 import configparser
-from GDriveOps.GDhandler import GoogleDriveHandler
 import nltk
 #from nltk.corpus import stopwords
 #from nltk.tokenize import sent_tokenize, word_tokenize
