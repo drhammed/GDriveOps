@@ -462,6 +462,36 @@ class GoogleDriveHandler:
 
                 output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
                 self.save_summary_as_docx(summary, output_path)
+                
+    
+    def run_streamlit_app(self):
+        st.title("PDF Research Paper Summarizer")
+
+        uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
+        if uploaded_file is not None:
+            with open("uploaded_file.pdf", "wb") as f:
+                f.write(uploaded_file.getbuffer())
+
+            with st.spinner("Generating summary..."):
+                text = self.extract_text_from_pdf("uploaded_file.pdf")
+                combined_text, sections = self.extract_sections(text)
+
+                selected_model = st.sidebar.selectbox("Select a model", ["llama3-8b-8192", "llama3-70b-8192", "gpt-4o-mini", "gpt-4o", "gpt-4"])
+                OPENAI_API_KEY = st.secrets["api_keys"]["OPENAI_API_KEY"]
+                GROQ_API_KEY = st.secrets["api_keys"]["GROQ_API_KEY"]
+                VOYAGEAI_API_key = st.secrets["api_keys"]["VOYAGE_AI_API_KEY"]
+
+                summary = self.summarize_text(combined_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+
+            st.subheader("Summary")
+            st.write(summary)
+
+            if st.button("Save Summary as DOCX"):
+                output_path = os.path.join("summary_folder", "summary.docx")
+                self.save_summary_as_docx(summary, output_path)
+                st.success(f"Summary saved to {output_path}")
+
+
 
 # Entry point for command line usage
 def main():
@@ -491,6 +521,8 @@ def main():
         handler.download_txt(args.folder_id, save_dir=args.directory)
     elif args.action == 'download_docs':
         handler.download_docs(args.folder_id, save_dir=args.directory)
+    elif args.action == 'run_app':
+        handler.run_streamlit_app()
 
 if __name__ == '__main__':
     main()

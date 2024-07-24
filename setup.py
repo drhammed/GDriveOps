@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GDriveOps',
-    version='0.2.0',
+    version='0.2.1',
     packages=find_packages(),
     install_requires=[
         "google-api-python-client",
@@ -29,7 +29,6 @@ setup(
     entry_points={
         'console_scripts': [
             'GDriveOps=GDriveOps.GDhandler:main',
-            'GDriveOps-app=GDriveOps.app:main',
         ],
     },
     author='Hammed A. Akande',
