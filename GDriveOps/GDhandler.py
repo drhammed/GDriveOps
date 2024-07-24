@@ -464,6 +464,8 @@ class GoogleDriveHandler:
 
         def on_model_change(change):
             selected_model = change['new']
+            status_label.value = "Processing... Please wait."
+            
             for pdf_filename in os.listdir(pdf_directory):
                 if pdf_filename.endswith('.pdf'):
                     pdf_path = os.path.join(pdf_directory, pdf_filename)
@@ -476,6 +478,7 @@ class GoogleDriveHandler:
 
                     output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
                     self.save_summary_as_docx(summary, output_path)
+            status_label.value = "Processing complete. Summaries saved."
 
         model_dropdown.observe(on_model_change, names='value')
 
