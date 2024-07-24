@@ -461,7 +461,7 @@ class GoogleDriveHandler:
             description='Select Model:',
         )
         display(model_dropdown)
-        
+
         status_label = widgets.Label(value="Select a model to start processing...")
         display(status_label)
 
@@ -476,35 +476,40 @@ class GoogleDriveHandler:
         )
         display(progress_bar)
 
+        process_button = widgets.Button(description="Start Processing")
+        display(process_button)
 
-        def on_model_change(change):
-            selected_model = change['new']
+        def on_button_click(b):
+            selected_model = model_dropdown.value
             status_label.value = "Processing... Please wait."
-            
-            for pdf_filename in os.listdir(pdf_directory):
-                if pdf_filename.endswith('.pdf'):
-                    pdf_path = os.path.join(pdf_directory, pdf_filename)
-                    text = self.extract_text_from_pdf(pdf_path)
-                    combined_text, _ = self.extract_sections(text)
-                    preprocessed_text = self.preprocess_text(combined_text)
 
-                    model = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
-                    summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+            pdf_files = [f for f in os.listdir(pdf_directory) if f.endswith('.pdf')]
+            total_files = len(pdf_files)
 
-                    output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
-                    self.save_summary_as_docx(summary, output_path)
-                    
-                    
-                    # Update progress bar
+            for idx, pdf_filename in enumerate(pdf_files):
+                pdf_path = os.path.join(pdf_directory, pdf_filename)
+                text = self.extract_text_from_pdf(pdf_path)
+                combined_text, _ = self.extract_sections(text)
+                preprocessed_text = self.preprocess_text(combined_text)
+
+                model = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
+                summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+
+                output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
+                self.save_summary_as_docx(summary, output_path)
+
+                # Update progress bar
                 progress = int((idx + 1) / total_files * 100)
                 progress_bar.value = progress
                 progress_bar.description = f'Progress: {progress}%'
-            
+
             status_label.value = "Processing complete. Summaries saved."
             progress_bar.bar_style = 'success'
             progress_bar.description = 'Complete'
-            
-        model_dropdown.observe(on_model_change, names='value')
+
+        process_button.on_click(on_button_click)
+
+    
 
     def run_streamlit_app(self):
         st.title("PDF Research Paper Summarizer")
