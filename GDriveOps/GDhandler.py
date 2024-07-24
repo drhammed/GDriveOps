@@ -1,66 +1,33 @@
-#import libs
 from __future__ import print_function
 import os
 import re
-import PyPDF2
 import fitz
-import os.path
 import io
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
-from googleapiclient.http import MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 from docx import Document
-import configparser
 import nltk
-#from nltk.corpus import stopwords
-#from nltk.tokenize import sent_tokenize, word_tokenize
-#from nltk.stem import WordNetLemmatizer
 import string
 import openai
 import streamlit as st
 from langchain_openai import ChatOpenAI
-import openai
 from groq import Groq
-from langchain.chains import LLMChain, RetrievalQA
-#import time
-#import re
-import warnings
-from langchain.memory import ConversationBufferMemory
-from langchain.schema import HumanMessage
-from langchain.prompts import ChatPromptTemplate
-from langchain.chains import ConversationChain
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_core.runnables.base import Runnable
-from langchain_core.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-)
-from langchain_core.messages import SystemMessage
+from langchain.chains import LLMChain
+from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains.conversation.memory import ConversationBufferWindowMemory
-from langchain_groq import ChatGroq
-import uuid
-from datetime import datetime, timedelta
-import nltk
-from nltk.corpus import stopwords
-from nltk.tokenize import sent_tokenize, word_tokenize
-from nltk.stem import WordNetLemmatizer
-import string
-from langchain.embeddings import HuggingFaceInstructEmbeddings
-#from InstructorEmbedding import INSTRUCTOR
 from sklearn.cluster import KMeans
 import numpy as np
 import voyageai
-from langchain_voyageai import VoyageAIEmbeddings
 from sklearn.metrics.pairwise import cosine_similarity
 from rouge_score import rouge_scorer
-
-
+from datetime import datetime, timedelta
+import uuid
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.stem import WordNetLemmatizer
 
 nltk.download('punkt')
 nltk.download('wordnet')
@@ -462,8 +429,7 @@ class GoogleDriveHandler:
 
                 output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
                 self.save_summary_as_docx(summary, output_path)
-                
-    
+
     def run_streamlit_app(self):
         st.title("PDF Research Paper Summarizer")
 
@@ -491,14 +457,12 @@ class GoogleDriveHandler:
                 self.save_summary_as_docx(summary, output_path)
                 st.success(f"Summary saved to {output_path}")
 
-
-
 # Entry point for command line usage
 def main():
     import argparse
 
     parser = argparse.ArgumentParser(description='Google Drive Handler')
-    parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx', 'download_txts', 'download_docs'], help='Action to perform')
+    parser.add_argument('action', choices=['download_pdfs', 'upload_txt', 'convert_pdfs', 'convert_docx', 'download_txts', 'download_docs', 'run_app'], help='Action to perform')
     parser.add_argument('folder_id', help='Google Drive folder ID')
     parser.add_argument('--credentials', default='credentials.json', help='Path to credentials.json')
     parser.add_argument('--directory', default='.', help='Directory to process files in')
