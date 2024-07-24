@@ -61,23 +61,41 @@ class GoogleDriveHandler:
         if not os.path.exists(path):
             os.makedirs(path)
 
-    def get_files_in_folder(self, folder_id, mimeType):
+    def get_files_in_folder(self, folder_id, mimeType, page_size=10):
         query = f"'{folder_id}' in parents and mimeType='{mimeType}' and trashed=false"
-        results = self.service.files().list(
-            q=query,
-            pageSize=10,
-            fields="nextPageToken, files(id, name)"
-        ).execute()
-        return results.get('files', [])
+        files = []
+        page_token = None
+        while True:
+            results = self.service.files().list(
+                q=query,
+                spaces='drive',
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token,
+                pageSize=page_size
+            ).execute()
+            files.extend(results.get('files', []))
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
+        return files
 
-    def get_files_in_folder_with_query(self, query):
+    def get_files_in_folder_with_query(self, query, page_size=10):
         query += " and trashed=false"
-        results = self.service.files().list(
-            q=query,
-            pageSize=10,
-            fields="nextPageToken, files(id, name)"
-        ).execute()
-        return results.get('files', [])
+        files = []
+        page_token = None
+        while True:
+            results = self.service.files().list(
+                q=query,
+                spaces='drive',
+                fields="nextPageToken, files(id, name)",
+                pageToken=page_token,
+                pageSize=page_size
+            ).execute()
+            files.extend(results.get('files', []))
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
+        return files
 
     def download_file(self, item, save_dir):
         file_name = item['name']
@@ -113,9 +131,17 @@ class GoogleDriveHandler:
 
     def download_pdfs(self, folder_id, save_dir='PDF_docs'):
         self.ensure_directory(save_dir)
-        items = self.get_files_in_folder(folder_id, "application/pdf")
-        for item in items:
-            self.download_file(item, save_dir)
+        page_token = None
+        while True:
+            items = self.get_files_in_folder(folder_id, "application/pdf", page_size=10)
+            if not items:
+                print('No more files found.')
+                break
+            for item in items:
+                self.download_file(item, save_dir)
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
 
     def upload_txt(self, folder_id, directory_path='.'):
         self.ensure_directory(directory_path)
@@ -164,16 +190,32 @@ class GoogleDriveHandler:
 
     def download_txt(self, folder_id, save_dir='Text_docs'):
         self.ensure_directory(save_dir)
-        items = self.get_files_in_folder(folder_id, "text/plain")
-        for item in items:
-            self.download_file(item, save_dir)
+        page_token = None
+        while True:
+            items = self.get_files_in_folder(folder_id, "text/plain", page_size=10)
+            if not items:
+                print('No more files found.')
+                break
+            for item in items:
+                self.download_file(item, save_dir)
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
 
     def download_docs(self, folder_id, save_dir='Doc_docs'):
         self.ensure_directory(save_dir)
         query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document') and trashed=false"
-        items = self.get_files_in_folder_with_query(query)
-        for item in items:
-            self.download_file(item, save_dir)
+        page_token = None
+        while True:
+            items = self.get_files_in_folder_with_query(query, page_size=10)
+            if not items:
+                print('No more files found.')
+                break
+            for item in items:
+                self.download_file(item, save_dir)
+            page_token = results.get('nextPageToken', None)
+            if page_token is None:
+                break
 
 # Entry point for command line usage
 def main():
