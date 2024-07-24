@@ -1,13 +1,70 @@
 #import libs
+from __future__ import print_function
 import os
-import io
+import re
+import PyPDF2
 import fitz
+import os.path
+import io
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload
 from docx import Document
+import configparser
+from GDriveOps.GDhandler import GoogleDriveHandler
+import nltk
+#from nltk.corpus import stopwords
+#from nltk.tokenize import sent_tokenize, word_tokenize
+#from nltk.stem import WordNetLemmatizer
+import string
+import openai
+import streamlit as st
+from langchain_openai import ChatOpenAI
+import openai
+from groq import Groq
+from langchain.chains import LLMChain, RetrievalQA
+#import time
+#import re
+import warnings
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import HumanMessage
+from langchain.prompts import ChatPromptTemplate
+from langchain.chains import ConversationChain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables.base import Runnable
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
+from langchain_core.messages import SystemMessage
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain_groq import ChatGroq
+import uuid
+from datetime import datetime, timedelta
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.stem import WordNetLemmatizer
+import string
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+#from InstructorEmbedding import INSTRUCTOR
+from sklearn.cluster import KMeans
+import numpy as np
+import voyageai
+from langchain_voyageai import VoyageAIEmbeddings
+from sklearn.metrics.pairwise import cosine_similarity
+from rouge_score import rouge_scorer
+
+
+
+nltk.download('punkt')
+nltk.download('wordnet')
 
 class GoogleDriveHandler:
     def __init__(self, credentials_path='credentials.json', token_path='token.json'):
@@ -239,6 +296,174 @@ class GoogleDriveHandler:
             if page_token is None:
                 break
 
+    def preprocess_text(self, text):
+        lemmatizer = WordNetLemmatizer()
+        sentences = nltk.sent_tokenize(text)
+        punctuation = set(string.punctuation)
+
+        processed_sentences = []
+        for sent in sentences:
+            words = nltk.word_tokenize(sent)
+            filtered_words = [
+                lemmatizer.lemmatize(word.lower()) 
+                for word in words 
+                if word.lower() not in punctuation and word.isalpha()
+            ]
+            processed_sentences.append(' '.join(filtered_words))
+
+        processed_text = ' '.join(processed_sentences)
+        processed_text = re.sub(r'\d+', '', processed_text)
+
+        return processed_text
+
+    def extract_text_from_pdf(self, pdf_path):
+        doc = fitz.open(pdf_path)
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        return text
+
+    def extract_sections(self, text):
+        sections = {
+            "methodology": "",
+            "methods": "",
+            "results": "",
+            "discussion": "",
+            "conclusion": ""
+        }
+
+        current_section = None
+        start_extracting = False
+        for line in text.split('\n'):
+            line_lower = line.lower()
+            if "methodology" in line_lower or "methods" in line_lower:
+                current_section = "methodology"
+                start_extracting = True
+            elif "results" in line_lower:
+                current_section = "results"
+            elif "discussion" in line_lower:
+                current_section = "discussion"
+            elif "conclusion" in line_lower:
+                current_section = "conclusion"
+            elif "references" in line_lower:
+                start_extracting = False
+
+            if start_extracting and current_section:
+                sections[current_section] += line + "\n"
+
+        combined_text = (sections["methodology"] + sections["results"] + 
+                         sections["discussion"] + sections["conclusion"])
+
+        return combined_text, sections
+
+    def get_model(self, selected_model, OPENAI_API_KEY, GROQ_API_KEY):
+        if selected_model == "llama3-8b-8192":
+            return ChatGroq(groq_api_key=GROQ_API_KEY, model="llama3-8b-8192", temperature=0.02, max_tokens=None, timeout=None, max_retries=2)
+        elif selected_model == "llama3-70b-8192":
+            return ChatGroq(groq_api_key=GROQ_API_KEY, model="llama3-70b-8192", temperature=0.02, max_tokens=None, timeout=None, max_retries=2) 
+        elif selected_model == "gpt-4o-mini":
+            return ChatOpenAI(model="gpt-4o-mini", temperature=0, max_tokens=None, timeout=None, max_retries=2, api_key=OPENAI_API_KEY)
+        elif selected_model == "gpt-4o":
+            return ChatOpenAI(model="gpt-4o", temperature=0, max_tokens=None, timeout=None, max_retries=2, api_key=OPENAI_API_KEY)
+        elif selected_model == "gpt-4":
+            return ChatOpenAI(model="gpt-4", temperature=0, max_tokens=None, timeout=None, max_retries=2, api_key=OPENAI_API_KEY)
+        else:
+            raise ValueError("Invalid model selected")
+
+    def chunk_text_with_langchain(self, text, chunk_size=8000, chunk_overlap=500):
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+        chunks = text_splitter.split_text(text)
+        return chunks
+
+    def embed_chunks(self, chunks, VOYAGEAI_API_key):
+        vo = voyageai.Client(api_key=VOYAGEAI_API_key)
+        result = vo.embed(chunks, model="voyage-large-2-instruct", input_type="document")
+        vectors = result.embeddings
+        return np.array(vectors)
+
+    def clustering(self, vectors, num_clusters):
+        kmeans = KMeans(n_clusters=num_clusters, random_state=42).fit(vectors)
+        labels = kmeans.labels_
+
+        closest_indices = []
+        for i in range(num_clusters):
+            distances = np.linalg.norm(vectors - kmeans.cluster_centers_[i], axis=1)
+            closest_index = np.argmin(distances)
+            closest_indices.append(closest_index)
+
+        selected_indices = sorted(closest_indices)
+        return selected_indices
+
+    def filter_redundant_chunks(self, chunks, vectors, similarity_threshold=0.8):
+        unique_chunks = []
+        unique_vectors = []
+
+        for i, vector in enumerate(vectors):
+            if len(unique_vectors) == 0:
+                unique_chunks.append(chunks[i])
+                unique_vectors.append(vector)
+            else:
+                similarities = cosine_similarity([vector], unique_vectors)
+                if max(similarities[0]) < similarity_threshold:
+                    unique_chunks.append(chunks[i])
+                    unique_vectors.append(vector)
+
+        return unique_chunks, unique_vectors
+
+    def summarize_text(self, text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
+        llm_mod = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
+        system_prompt = "You are a helpful assistant. Use your own words to provide a high-level summary of the research articles starting from the methodology (materials and methods) section onwards and exclude the references section. Focus on the key findings, conservation (policy recommendations if any) and conclusions. Write it in paragraphs like document"
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessage(content=system_prompt),
+            HumanMessagePromptTemplate.from_template("{text}")
+        ])
+        conversation = LLMChain(llm=llm_mod, prompt=prompt)
+
+        if selected_model in ["llama3-8b-8192", "llama3-70b-8192", "gpt-4"]:
+            chunk_size = 8000
+            chunk_overlap = 500
+
+            chunks = self.chunk_text_with_langchain(text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            vectors = self.embed_chunks(chunks, VOYAGEAI_API_key)
+
+            unique_chunks, unique_vectors = self.filter_redundant_chunks(chunks, vectors, similarity_threshold=0.8)
+
+            num_clusters = min(10, len(unique_chunks))
+
+            selected_indices = self.clustering(unique_vectors, num_clusters)
+            selected_chunks = [unique_chunks[i] for i in selected_indices]
+            selected_text = ' '.join(selected_chunks)
+
+            if len(selected_text) > chunk_size:
+                final_summary_chunks = []
+                for i in range(0, len(selected_text), chunk_size):
+                    final_summary_chunks.append(conversation.run(selected_text[i:i + chunk_size]))
+                summary = ' '.join(final_summary_chunks)
+            else:
+                summary = conversation.run(selected_text)
+        else:
+            summary = conversation.run(text)
+        return summary
+
+    def save_summary_as_docx(self, summary, output_path):
+        doc = Document()
+        doc.add_heading('Research Paper Summary', 0)
+        doc.add_paragraph(summary)
+        doc.save(output_path)
+
+    def process_pdfs(self, pdf_directory, output_directory, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
+        for pdf_filename in os.listdir(pdf_directory):
+            if pdf_filename.endswith('.pdf'):
+                pdf_path = os.path.join(pdf_directory, pdf_filename)
+                text = self.extract_text_from_pdf(pdf_path)
+                combined_text, _ = self.extract_sections(text)
+                preprocessed_text = self.preprocess_text(combined_text)
+
+                summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
+
+                output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
+                self.save_summary_as_docx(summary, output_path)
+
 # Entry point for command line usage
 def main():
     import argparse
@@ -248,6 +473,8 @@ def main():
     parser.add_argument('folder_id', help='Google Drive folder ID')
     parser.add_argument('--credentials', default='credentials.json', help='Path to credentials.json')
     parser.add_argument('--directory', default='.', help='Directory to process files in')
+    parser.add_argument('--model', default='gpt-4', help='Model to use for summarization')
+    parser.add_argument('--output', default='summary_folder', help='Output directory for summaries')
 
     args = parser.parse_args()
 
@@ -258,7 +485,7 @@ def main():
     elif args.action == 'upload_txt':
         handler.upload_txt(args.folder_id, directory_path=args.directory)
     elif args.action == 'convert_pdfs':
-        handler.process_pdfs_in_dir(args.directory)
+        handler.process_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
     elif args.action == 'convert_docx':
         handler.convert_docx_to_txt(args.directory)
     elif args.action == 'download_txts':

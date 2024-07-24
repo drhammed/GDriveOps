@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='GDriveOps',
-    version='0.1.8',
+    version='0.1.9',
     packages=find_packages(),
     install_requires=[
         "google-api-python-client",
@@ -10,7 +10,18 @@ setup(
         "google-auth-httplib2",
         "google-auth-oauthlib",
         'PyMuPDF',
-        'python-docx'
+        'python-docx',
+        'nltk',
+        'streamlit',
+        'openai',
+        'voyageai',
+        'langchain',
+        'langchain-openai',
+        'langchain-voyageai',
+        'langchain-groq',
+        'langchain-core',
+        'scikit-learn',
+        'rouge-score',  
     ],
     dependency_links=[
         'https://pypi.org/simple/'
@@ -18,6 +29,7 @@ setup(
     entry_points={
         'console_scripts': [
             'GDriveOps=GDriveOps.GDhandler:main',
+            'GDriveOps-app=GDriveOps.app:main',
         ],
     },
     author='Hammed A. Akande',
