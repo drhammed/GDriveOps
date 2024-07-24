@@ -1,33 +1,65 @@
+#import libs
 from __future__ import print_function
 import os
 import re
+import PyPDF2
 import fitz
+import os.path
 import io
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload
 from docx import Document
+import configparser
 import nltk
+#from nltk.corpus import stopwords
+#from nltk.tokenize import sent_tokenize, word_tokenize
+#from nltk.stem import WordNetLemmatizer
 import string
 import openai
 import streamlit as st
 from langchain_openai import ChatOpenAI
+import openai
 from groq import Groq
-from langchain.chains import LLMChain
-from langchain.prompts import ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessage
+from langchain.chains import LLMChain, RetrievalQA
+#import time
+#import re
+import warnings
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import HumanMessage
+from langchain.prompts import ChatPromptTemplate
+from langchain.chains import ConversationChain
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables.base import Runnable
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+)
+from langchain_core.messages import SystemMessage
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from sklearn.cluster import KMeans
-import numpy as np
-import voyageai
-from sklearn.metrics.pairwise import cosine_similarity
-from rouge_score import rouge_scorer
-from datetime import datetime, timedelta
+from langchain.chains.conversation.memory import ConversationBufferWindowMemory
+from langchain_groq import ChatGroq
 import uuid
+from datetime import datetime, timedelta
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
+import string
+from langchain.embeddings import HuggingFaceInstructEmbeddings
+#from InstructorEmbedding import INSTRUCTOR
+from sklearn.cluster import KMeans
+import numpy as np
+import voyageai
+from langchain_voyageai import VoyageAIEmbeddings
+from sklearn.metrics.pairwise import cosine_similarity
+from rouge_score import rouge_scorer
+
 
 nltk.download('punkt')
 nltk.download('wordnet')
