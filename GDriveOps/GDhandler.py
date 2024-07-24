@@ -461,6 +461,21 @@ class GoogleDriveHandler:
             description='Select Model:',
         )
         display(model_dropdown)
+        
+        status_label = widgets.Label(value="Select a model to start processing...")
+        display(status_label)
+
+        progress_bar = widgets.IntProgress(
+            value=0,
+            min=0,
+            max=100,
+            step=1,
+            description='Progress:',
+            bar_style='info',
+            orientation='horizontal'
+        )
+        display(progress_bar)
+
 
         def on_model_change(change):
             selected_model = change['new']
@@ -478,8 +493,17 @@ class GoogleDriveHandler:
 
                     output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
                     self.save_summary_as_docx(summary, output_path)
+                    
+                    
+                    # Update progress bar
+                progress = int((idx + 1) / total_files * 100)
+                progress_bar.value = progress
+                progress_bar.description = f'Progress: {progress}%'
+            
             status_label.value = "Processing complete. Summaries saved."
-
+            progress_bar.bar_style = 'success'
+            progress_bar.description = 'Complete'
+            
         model_dropdown.observe(on_model_change, names='value')
 
     def run_streamlit_app(self):
