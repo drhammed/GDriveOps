@@ -187,9 +187,10 @@ class GoogleDriveHandler:
         ).execute()
         print(f"{file_name} uploaded successfully with File ID: {file.get('id')}")
 
-    def download_pdfs(self, folder_id, save_dir='PDF_docs'):
+    def download_pdfs(self, folder_id, save_dir='PDF_docs', limit = None):
         self.ensure_directory(save_dir)
         page_token = None
+        downloaded_files = 0
         while True:
             results = self.service.files().list(
                 q=f"'{folder_id}' in parents and mimeType='application/pdf' and trashed=false",
@@ -203,7 +204,11 @@ class GoogleDriveHandler:
                 print('No more files found.')
                 break
             for item in items:
+                if limit is not None and downloaded_files >= limit:
+                    print(f"Download limit of {limit} files reached.")
+                    return
                 self.download_file(item, save_dir)
+                downloaded_files += 1
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
@@ -253,9 +258,11 @@ class GoogleDriveHandler:
                     text_file.write(text_content)
                 print(f"Converted {file_name} to {text_file_name}")
 
-    def download_txt(self, folder_id, save_dir='Text_docs'):
+    def download_txt(self, folder_id, save_dir='Text_docs', limit = None):
         self.ensure_directory(save_dir)
         page_token = None
+        downloaded_files = 0
+        
         while True:
             results = self.service.files().list(
                 q=f"'{folder_id}' in parents and mimeType='text/plain' and trashed=false",
@@ -269,15 +276,21 @@ class GoogleDriveHandler:
                 print('No more files found.')
                 break
             for item in items:
+                if limit is not None and downloaded_files >= limit:
+                    print(f"Download limit of {limit} files reached.")
+                    return
                 self.download_file(item, save_dir)
+                downloaded_files += 1
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
 
-    def download_docs(self, folder_id, save_dir='Doc_docs'):
+    def download_docs(self, folder_id, save_dir='Doc_docs', limit = None):
         self.ensure_directory(save_dir)
         query = f"'{folder_id}' in parents and (mimeType='application/msword' or mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document') and trashed=false"
         page_token = None
+        downloaded_files = 0
+        
         while True:
             results = self.service.files().list(
                 q=query,
@@ -291,11 +304,18 @@ class GoogleDriveHandler:
                 print('No more files found.')
                 break
             for item in items:
+                if limit is not None and downloaded_files >= limit:
+                    print(f"Download limit of {limit} files reached.")
+                    return
                 self.download_file(item, save_dir)
+                downloaded_files += 1
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
-
+      
+      #This part add LLM to the package allowing users to summarize PDFs easily
+      #Begin by pre-processing the data
+      
     def preprocess_text(self, text):
         lemmatizer = WordNetLemmatizer()
         sentences = nltk.sent_tokenize(text)
@@ -508,35 +528,6 @@ class GoogleDriveHandler:
             progress_bar.description = 'Complete'
 
         process_button.on_click(on_button_click)
-
-    
-
-    def run_streamlit_app(self):
-        st.title("PDF Research Paper Summarizer")
-
-        uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
-        if uploaded_file is not None:
-            with open("uploaded_file.pdf", "wb") as f:
-                f.write(uploaded_file.getbuffer())
-
-            with st.spinner("Generating summary..."):
-                text = self.extract_text_from_pdf("uploaded_file.pdf")
-                combined_text, sections = self.extract_sections(text)
-
-                selected_model = st.sidebar.selectbox("Select a model", ["llama3-8b-8192", "llama3-70b-8192", "gpt-4o-mini", "gpt-4o", "gpt-4"])
-                OPENAI_API_KEY = st.secrets["api_keys"]["OPENAI_API_KEY"]
-                GROQ_API_KEY = st.secrets["api_keys"]["GROQ_API_KEY"]
-                VOYAGEAI_API_key = st.secrets["api_keys"]["VOYAGE_AI_API_KEY"]
-
-                summary = self.summarize_text(combined_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
-
-            st.subheader("Summary")
-            st.write(summary)
-
-            if st.button("Save Summary as DOCX"):
-                output_path = os.path.join("summary_folder", "summary.docx")
-                self.save_summary_as_docx(summary, output_path)
-                st.success(f"Summary saved to {output_path}")
 
 # Entry point for command line usage
 def main():
