@@ -563,7 +563,7 @@ def main():
     elif args.action == 'download_docs':
         handler.download_docs(args.folder_id, save_dir=args.directory)
     elif args.action == 'summaerize_pdfs':
-        handler.summarize_pdfs_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
+        handler.summarize_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
         
 
 if __name__ == '__main__':
