@@ -429,62 +429,65 @@ class GoogleDriveHandler:
                     unique_vectors.append(vector)
 
         return unique_chunks, unique_vectors
-
-    def summarize_text(self, text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
+    
+    
+    def summarize_text(self, text, selected_model, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size=8000, chunk_overlap=500, similarity_threshold=0.8, num_clusters=10):
         llm_mod = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
-        system_prompt = "You are a helpful assistant. Use your own words to provide a high-level summary of the research articles starting from the methodology (materials and methods) section onwards and exclude the references section. Focus on the key findings, conservation (policy recommendations if any) and conclusions. Write it in paragraphs like document"
-        prompt = ChatPromptTemplate.from_messages([
-            SystemMessage(content=system_prompt),
-            HumanMessagePromptTemplate.from_template("{text}")
+        system_prompt = prompt
+        prompt_template = ChatPromptTemplate.from_messages([
+        SystemMessage(content=system_prompt),
+        HumanMessagePromptTemplate.from_template("{text}")
         ])
-        conversation = LLMChain(llm=llm_mod, prompt=prompt)
-
+        
+        conversation = LLMChain(llm=llm_mod, prompt=prompt_template)
+        
         if selected_model in ["llama3-8b-8192", "llama3-70b-8192", "gpt-4"]:
-            chunk_size = 8000
-            chunk_overlap = 500
-
             chunks = self.chunk_text_with_langchain(text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
             vectors = self.embed_chunks(chunks, VOYAGEAI_API_key)
-
-            unique_chunks, unique_vectors = self.filter_redundant_chunks(chunks, vectors, similarity_threshold=0.8)
-
-            num_clusters = min(10, len(unique_chunks))
-
+            
+            unique_chunks, unique_vectors = self.filter_redundant_chunks(chunks, vectors, similarity_threshold=similarity_threshold)
+            
+            num_clusters = min(num_clusters, len(unique_chunks))
+            
             selected_indices = self.clustering(unique_vectors, num_clusters)
             selected_chunks = [unique_chunks[i] for i in selected_indices]
             selected_text = ' '.join(selected_chunks)
-
+            
             if len(selected_text) > chunk_size:
                 final_summary_chunks = []
                 for i in range(0, len(selected_text), chunk_size):
                     final_summary_chunks.append(conversation.run(selected_text[i:i + chunk_size]))
                 summary = ' '.join(final_summary_chunks)
+            
             else:
                 summary = conversation.run(selected_text)
         else:
             summary = conversation.run(text)
         return summary
 
-    def save_summary_as_docx(self, summary, output_path):
+    
+    def save_summary_as_docx(self, summary, output_path, pdf_filename):
         doc = Document()
-        doc.add_heading('Research Paper Summary', 0)
+        title = os.path.splitext(pdf_filename)[0]
+        doc.add_heading(f'{title} Summary', 0)
         doc.add_paragraph(summary)
         doc.save(output_path)
 
     
-    def summarize_pdfs(self, pdf_directory, output_directory, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key):
+    def summarize_pdfs(self, pdf_directory, output_directory, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size=8000, chunk_overlap=500, similarity_threshold=0.8, num_clusters=10):
         model_options = ["llama3-8b-8192", "llama3-70b-8192", "gpt-4o-mini", "gpt-4o", "gpt-4"]
-
+        
         model_dropdown = widgets.Dropdown(
             options=model_options,
             value=model_options[0],
             description='Select Model:',
         )
+        
         display(model_dropdown)
-
+        
         status_label = widgets.Label(value="Select a model to start processing...")
         display(status_label)
-
+        
         progress_bar = widgets.IntProgress(
             value=0,
             min=0,
@@ -493,41 +496,42 @@ class GoogleDriveHandler:
             description='Progress:',
             bar_style='info',
             orientation='horizontal'
-        )
+            )
         display(progress_bar)
-
+        
         process_button = widgets.Button(description="Start Processing")
         display(process_button)
-
+        
         def on_button_click(b):
             selected_model = model_dropdown.value
             status_label.value = "Processing... Please wait."
-
+            
             pdf_files = [f for f in os.listdir(pdf_directory) if f.endswith('.pdf')]
             total_files = len(pdf_files)
-
+            
             for idx, pdf_filename in enumerate(pdf_files):
                 pdf_path = os.path.join(pdf_directory, pdf_filename)
                 text = self.extract_text_from_pdf(pdf_path)
                 combined_text, _ = self.extract_sections(text)
                 preprocessed_text = self.preprocess_text(combined_text)
+            
+                summary = self.summarize_text(preprocessed_text, selected_model, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size, chunk_overlap, similarity_threshold, num_clusters)
 
-                model = self.get_model(selected_model, OPENAI_API_KEY, GROQ_API_KEY)
-                summary = self.summarize_text(preprocessed_text, selected_model, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key)
-
+                
                 output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
-                self.save_summary_as_docx(summary, output_path)
-
+                self.save_summary_as_docx(summary, output_path, pdf_filename)
+                
                 # Update progress bar
                 progress = int((idx + 1) / total_files * 100)
                 progress_bar.value = progress
                 progress_bar.description = f'Progress: {progress}%'
-
+            
             status_label.value = "Processing complete. Summaries saved."
             progress_bar.bar_style = 'success'
             progress_bar.description = 'Complete'
-
+                
         process_button.on_click(on_button_click)
+
 
 # Entry point for command line usage
 def main():
@@ -560,8 +564,7 @@ def main():
         handler.download_docs(args.folder_id, save_dir=args.directory)
     elif args.action == 'summaerize_pdfs':
         handler.summarize_pdfs_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
-    elif args.action == 'run_app':
-        handler.run_streamlit_app()
+        
 
 if __name__ == '__main__':
     main()
