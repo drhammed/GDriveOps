@@ -351,30 +351,57 @@ class GoogleDriveHandler:
             "discussion": "",
             "conclusion": ""
         }
-
+    
         current_section = None
         start_extracting = False
+        is_discussion = False
+    
         for line in text.split('\n'):
-            line_lower = line.lower()
-            if "methodology" in line_lower or "methods" in line_lower:
+            line_lower = line.strip().lower()
+
+            # Stop extracting when "references" section is encountered
+            if line_lower.startswith("references"):
+                start_extracting = False
+        
+            # Start extracting from "methodology" sections
+            elif ("methodology" in line_lower or 
+                "methods" in line_lower or 
+                "materials and methods" in line_lower or 
+                "materials & methods" in line_lower) and not is_discussion:
+                
                 current_section = "methodology"
                 start_extracting = True
-            elif "results" in line_lower:
+        
+            # Start extracting from the "results" section
+            elif "results" in line_lower and not is_discussion:
                 current_section = "results"
+                start_extracting = True
+        
+            # Start extracting from the "discussion" section
             elif "discussion" in line_lower:
                 current_section = "discussion"
+                is_discussion = True
+                start_extracting = True
+        
+            # Start extracting from the "conclusion" section
             elif "conclusion" in line_lower:
                 current_section = "conclusion"
-            elif "references" in line_lower:
+                start_extracting = True
+        
+            # Stop extracting when "acknowledgements" section is encountered
+            elif "acknowledgements" in line_lower:
                 start_extracting = False
-
+        
+            # Add lines to the current section if extracting is active
             if start_extracting and current_section:
                 sections[current_section] += line + "\n"
 
+        # Combine the extracted sections
         combined_text = (sections["methodology"] + sections["results"] + 
                          sections["discussion"] + sections["conclusion"])
-
+    
         return combined_text, sections
+
 
     def get_model(self, selected_model, OPENAI_API_KEY, GROQ_API_KEY):
         if selected_model == "llama3-8b-8192":
