@@ -581,9 +581,9 @@ class GoogleDriveHandler:
                 progress_bar.value = progress
                 progress_bar.description = f'Progress: {progress}%'
         
-            status_label.value = "Processing complete. Summaries saved."
-            progress_bar.bar_style = 'success'
-            progress_bar.description = 'Complete'
+        status_label.value = "Processing complete. Summaries saved."
+        progress_bar.bar_style = 'success'
+        progress_bar.description = 'Complete'
     
         process_button.on_click(on_button_click)
 
