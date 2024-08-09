@@ -547,21 +547,43 @@ class GoogleDriveHandler:
                     continue
             
                 text = self.extract_text_from_pdf(pdf_path)
+            
+                # Skip processing if extracted text is empty
+                if not text.strip():
+                    print(f"No text found in {pdf_filename}. Skipping...")
+                    continue
+            
                 combined_text, _ = self.extract_sections(text)
                 preprocessed_text = self.preprocess_text(combined_text)
-        
+            
+                # Skip processing if preprocessed text is empty
+                if not preprocessed_text.strip():
+                    print(f"No meaningful text after preprocessing for {pdf_filename}. Skipping...")
+                    continue
+            
+                # Chunking the preprocessed text
+                chunks = self.chunk_text_with_langchain(preprocessed_text, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
+            
+                # Skip embedding if there are no chunks
+                if not chunks:
+                    print(f"No chunks generated for {pdf_filename}. Skipping...")
+                    continue
+            
+                vectors = self.embed_chunks(chunks, VOYAGEAI_API_key)
+            
+                # Continue with the summarization if chunks and vectors are valid
                 summary = self.summarize_text(preprocessed_text, selected_model, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size, chunk_overlap, similarity_threshold, num_clusters)
             
                 self.save_summary_as_docx(summary, output_path, pdf_filename)
             
-            # Update progress bar
+                # Update progress bar
                 progress = int((idx + 1) / total_files * 100)
                 progress_bar.value = progress
                 progress_bar.description = f'Progress: {progress}%'
         
-        status_label.value = "Processing complete. Summaries saved."
-        progress_bar.bar_style = 'success'
-        progress_bar.description = 'Complete'
+            status_label.value = "Processing complete. Summaries saved."
+            progress_bar.bar_style = 'success'
+            progress_bar.description = 'Complete'
     
         process_button.on_click(on_button_click)
 
