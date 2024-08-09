@@ -312,6 +312,16 @@ class GoogleDriveHandler:
             page_token = results.get('nextPageToken', None)
             if page_token is None:
                 break
+    
+    def upload_docs(self, folder_id, directory_path='.'):
+        self.ensure_directory(directory_path)
+        files = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f)) and (f.endswith('.docx') or f.endswith('.doc'))]
+        existing_files = self.get_existing_files(folder_id)
+
+        for file_name in files:
+            if file_name not in existing_files:
+                self.upload_file(file_name, folder_id, directory_path)    
+      
       
       #This part add LLM to the package allowing users to summarize PDFs easily
       #Begin by pre-processing the data
@@ -617,6 +627,8 @@ def main():
         handler.download_txt(args.folder_id, save_dir=args.directory)
     elif args.action == 'download_docs':
         handler.download_docs(args.folder_id, save_dir=args.directory)
+    elif args.action == 'upload_docs':
+        handler.upload_docs(args.folder_id, directory_path=args.directory)
     elif args.action == 'summaerize_pdfs':
         handler.summarize_pdfs(args.directory, args.output, args.model, os.getenv("My_OpenAI_API_key"), os.getenv("My_Groq_API_key"), os.getenv("My_voyageai_API_key"))
         
