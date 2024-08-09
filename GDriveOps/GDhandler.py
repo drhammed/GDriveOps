@@ -501,20 +501,21 @@ class GoogleDriveHandler:
         doc.save(output_path)
 
     
+
     def summarize_pdfs(self, pdf_directory, output_directory, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size=8000, chunk_overlap=500, similarity_threshold=0.8, num_clusters=10):
         model_options = ["llama3-8b-8192", "llama3-70b-8192", "gpt-4o-mini", "gpt-4o", "gpt-4"]
-        
+    
         model_dropdown = widgets.Dropdown(
             options=model_options,
             value=model_options[0],
             description='Select Model:',
         )
-        
+    
         display(model_dropdown)
-        
+    
         status_label = widgets.Label(value="Select a model to start processing...")
         display(status_label)
-        
+    
         progress_bar = widgets.IntProgress(
             value=0,
             min=0,
@@ -523,40 +524,45 @@ class GoogleDriveHandler:
             description='Progress:',
             bar_style='info',
             orientation='horizontal'
-            )
+        )
         display(progress_bar)
-        
+    
         process_button = widgets.Button(description="Start Processing")
         display(process_button)
-        
+    
         def on_button_click(b):
             selected_model = model_dropdown.value
             status_label.value = "Processing... Please wait."
-            
+        
             pdf_files = [f for f in os.listdir(pdf_directory) if f.endswith('.pdf')]
             total_files = len(pdf_files)
-            
+        
             for idx, pdf_filename in enumerate(pdf_files):
                 pdf_path = os.path.join(pdf_directory, pdf_filename)
+                output_path = os.path.join(output_directory, f"Summary-{os.path.splitext(pdf_filename)[0]}.docx")
+            
+                # Check if the summary already exists
+                if os.path.exists(output_path):
+                    print(f"Summary already exists for {pdf_filename}. Skipping...")
+                    continue
+            
                 text = self.extract_text_from_pdf(pdf_path)
                 combined_text, _ = self.extract_sections(text)
                 preprocessed_text = self.preprocess_text(combined_text)
-            
+        
                 summary = self.summarize_text(preprocessed_text, selected_model, prompt, OPENAI_API_KEY, GROQ_API_KEY, VOYAGEAI_API_key, chunk_size, chunk_overlap, similarity_threshold, num_clusters)
-
-                
-                output_path = os.path.join(output_directory, f"{os.path.splitext(pdf_filename)[0]}_summary.docx")
+            
                 self.save_summary_as_docx(summary, output_path, pdf_filename)
-                
-                # Update progress bar
+            
+            # Update progress bar
                 progress = int((idx + 1) / total_files * 100)
                 progress_bar.value = progress
                 progress_bar.description = f'Progress: {progress}%'
-            
-            status_label.value = "Processing complete. Summaries saved."
-            progress_bar.bar_style = 'success'
-            progress_bar.description = 'Complete'
-                
+        
+        status_label.value = "Processing complete. Summaries saved."
+        progress_bar.bar_style = 'success'
+        progress_bar.description = 'Complete'
+    
         process_button.on_click(on_button_click)
 
 
